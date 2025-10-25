@@ -1,9 +1,20 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import { SecurityValidator } from './security/validator.js';
 import { loadConfig } from './security/config.js';
 import { createLogger } from './utils/logger.js';
 import { wrapError } from './utils/errors.js';
+
+// Import resources and prompts
+import { getResourceDefinitions, getResourceContent } from './resources/index.js';
+import { getPromptDefinitions, getPromptMessages } from './prompts/index.js';
 
 // Import filesystem tools
 import { readFileTool, readFileToolDefinition, type ReadFileArgs } from './tools/filesystem/read.js';
@@ -47,6 +58,8 @@ export function createServer(configPath?: string) {
     {
       capabilities: {
         tools: {},
+        resources: {},
+        prompts: {},
       },
     }
   );
@@ -135,6 +148,54 @@ export function createServer(configPath?: string) {
         }],
       };
     }
+  });
+
+  // Register resources handlers
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    logger.debug('ListResources requested');
+    return {
+      resources: getResourceDefinitions(),
+    };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const { uri } = request.params;
+    logger.info({ uri }, 'ReadResource requested');
+
+    const content = getResourceContent(uri, config, sessionManager);
+    if (!content) {
+      throw new Error(`Resource not found: ${uri}`);
+    }
+
+    return {
+      contents: [{
+        uri,
+        mimeType: content.mimeType,
+        text: content.text,
+      }],
+    };
+  });
+
+  // Register prompts handlers
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    logger.debug('ListPrompts requested');
+    return {
+      prompts: getPromptDefinitions(),
+    };
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    logger.info({ name, args }, 'GetPrompt requested');
+
+    const messages = getPromptMessages(name, args || {});
+    if (!messages) {
+      throw new Error(`Prompt not found: ${name}`);
+    }
+
+    return {
+      messages,
+    };
   });
 
   logger.info({

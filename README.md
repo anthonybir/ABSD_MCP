@@ -4,10 +4,12 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Features
 
-- **Filesystem Operations**: Read, write, list, search files with path validation
-- **Terminal Sessions**: Interactive process management with PTY support
+- **12 Powerful Tools**: 7 filesystem + 5 terminal operations
+- **Filesystem Operations**: Read, write, list, create, search (ripgrep), edit (surgical)
+- **Terminal Sessions**: Interactive REPLs (Python, Node.js) with smart prompt detection
+- **MCP Primitives**: Resources (server state) + Prompts (workflow templates)
 - **Security-First**: Path traversal protection, command filtering, input sanitization
-- **Type-Safe**: Built with TypeScript and Zod schema validation
+- **Type-Safe**: Built with TypeScript strict mode and Zod schema validation
 - **Local-Only**: Runs entirely on your machine via stdio transport
 
 ## Installation
@@ -90,21 +92,38 @@ Restart Claude Desktop to activate the server.
 
 ## Available Tools
 
-### Filesystem Tools
+### Filesystem Tools (7)
 
-- **read_file**: Read file contents with optional chunking and offset support
+- **read_file**: Read file contents with optional chunking and offset support (tail mode with negative offset)
 - **write_file**: Create or overwrite files with append mode option
-- **list_directory**: List directory contents recursively
-- **search_files**: Search for files using patterns (ripgrep integration)
-- **edit_block**: Surgical text replacement for precise edits
+- **list_directory**: List directory contents recursively with depth control
+- **create_directory**: Create directories with recursive parent creation
+- **get_file_info**: Get detailed metadata (size, permissions, timestamps, line count)
+- **search_files**: Search for patterns using ripgrep (regex, literal, file filtering)
+- **edit_block**: Surgical text replacement with uniqueness validation
 
-### Terminal Tools
+### Terminal Tools (5)
 
-- **start_process**: Launch interactive terminal sessions
-- **interact_with_process**: Send commands to running processes
-- **read_process_output**: Retrieve output from sessions
-- **list_sessions**: View active terminal sessions
-- **terminate_process**: Stop running sessions
+- **start_process**: Launch interactive terminal sessions (Python, Node.js, bash)
+- **interact_with_process**: Send commands with smart REPL prompt detection
+- **read_process_output**: Retrieve buffered output from background processes
+- **list_sessions**: View all active terminal sessions with status
+- **terminate_process**: Stop running sessions by PID
+
+## MCP Primitives
+
+### Resources
+
+Expose server state and configuration:
+- **config://absd-mcp/server**: Current server configuration (allowed directories, limits)
+- **state://absd-mcp/sessions**: Active terminal sessions with status
+
+### Prompts
+
+Pre-configured templates for common workflows:
+- **analyze_codebase**: Analyze project structure and tech stack
+- **setup_python_env**: Interactive Python development environment
+- **search_and_replace**: Pattern search with guided replacement
 
 ## Security
 
