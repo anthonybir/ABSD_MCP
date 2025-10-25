@@ -33,3 +33,4 @@ coverage/
 *.tmp
 tmp/
 temp/
+.npmrc

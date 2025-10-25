@@ -17,13 +17,13 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 ### Using npx (Recommended)
 
 ```bash
-npx @absd/devops-mcp@latest
+npx @anthonybir/devops-mcp@latest
 ```
 
 ### Using npm
 
 ```bash
-npm install -g @absd/devops-mcp
+npm install -g @anthonybir/devops-mcp
 ```
 
 ### From Source
@@ -79,7 +79,7 @@ Add to your Claude Desktop configuration:
   "mcpServers": {
     "absd-devops": {
       "command": "npx",
-      "args": ["-y", "@absd/devops-mcp@latest"],
+      "args": ["-y", "@anthonybir/devops-mcp@latest"],
       "env": {
         "ABSD_MCP_CONFIG": "/path/to/your/config.json"
       }

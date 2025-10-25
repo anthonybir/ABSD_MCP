@@ -1,5 +1,5 @@
 {
-  "name": "@absd/devops-mcp",
+  "name": "@anthonybir/devops-mcp",
   "version": "0.1.0",
   "description": "ABSD DevOps MCP Server - Local filesystem & terminal operations",
   "type": "module",
