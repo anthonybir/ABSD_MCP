@@ -10,6 +10,8 @@ describe('get_config tool', () => {
     fileWriteLineLimit: 75,
     sessionTimeout: 1800000,
     logLevel: 'info',
+    urlDenylist: ['localhost', '127.0.0.1'],
+    urlTimeout: 10000,
   };
 
   it('should return config with security metadata for restricted access', async () => {

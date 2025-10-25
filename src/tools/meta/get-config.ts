@@ -26,6 +26,8 @@ export async function getConfigTool(config: Config): Promise<ToolResult> {
     fileWriteLineLimit: config.fileWriteLineLimit,
     sessionTimeout: config.sessionTimeout,
     logLevel: config.logLevel,
+    urlDenylist: config.urlDenylist,
+    urlTimeout: config.urlTimeout,
     version: '0.3.0',
     platform: process.platform,
     nodeVersion: process.version,
@@ -35,6 +37,7 @@ export async function getConfigTool(config: Config): Promise<ToolResult> {
       hasUnrestrictedAccess: config.allowedDirectories.length === 0,
       totalAllowedPaths: config.allowedDirectories.length,
       totalBlockedCommands: config.blockedCommands.length,
+      totalDeniedHosts: config.urlDenylist.length,
       warning:
         config.allowedDirectories.length === 0
           ? '⚠️ WARNING: Unrestricted filesystem access enabled. Any tool can read/write/delete ANY file on the system.'
