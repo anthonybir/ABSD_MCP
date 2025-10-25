@@ -14,8 +14,8 @@ const ReadFileSchema = z.object({
 
 export type ReadFileArgs = z.infer<typeof ReadFileSchema>;
 
-// Supported image extensions
-const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg']);
+// Supported image extensions (excluding SVG due to executable XML/script risk)
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
 
 // Image MIME type mapping
 const MIME_TYPES: Record<string, string> = {
@@ -25,7 +25,6 @@ const MIME_TYPES: Record<string, string> = {
   '.gif': 'image/gif',
   '.webp': 'image/webp',
   '.bmp': 'image/bmp',
-  '.svg': 'image/svg+xml',
 };
 
 /**
@@ -77,18 +76,18 @@ async function fetchUrl(url: string, config: Config, logger: Logger): Promise<Bu
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    // Check size (10MB max for URLs)
+    // Check size (5MB max for URLs)
     const contentLength = response.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
-      throw new Error('URL content exceeds 10MB limit');
+    if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
+      throw new Error('URL content exceeds 5MB limit');
     }
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Final size check after download
-    if (buffer.length > 10 * 1024 * 1024) {
-      throw new Error('Downloaded content exceeds 10MB limit');
+    if (buffer.length > 5 * 1024 * 1024) {
+      throw new Error('Downloaded content exceeds 5MB limit');
     }
 
     return buffer;
@@ -243,8 +242,10 @@ export async function readFileTool(
 
 export const readFileToolDefinition = {
   name: 'read_file',
-  description: 'Read the contents of a file or URL. Supports images (PNG, JPEG, GIF, WebP, BMP, SVG) with MCP native ImageContent. ' +
-               'For URLs: max 10MB, configurable timeout and denylist. ' +
+  description: 'Read the contents of a file or URL. Supports images (PNG, JPEG, GIF, WebP, BMP) with MCP native ImageContent. ' +
+               'SVG files are treated as text due to executable XML/script risk. ' +
+               'For URLs: max 5MB, configurable timeout (10s default) and denylist. ' +
+               'For local images: max 10MB. ' +
                'For text files: optional chunking and offset support (negative offset for tail behavior).',
   inputSchema: {
     type: 'object',

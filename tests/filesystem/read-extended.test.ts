@@ -99,7 +99,6 @@ describe('read_file extended functionality', () => {
         { ext: 'gif', mime: 'image/gif' },
         { ext: 'webp', mime: 'image/webp' },
         { ext: 'bmp', mime: 'image/bmp' },
-        { ext: 'svg', mime: 'image/svg+xml' },
       ];
 
       for (const format of formats) {
@@ -136,6 +135,24 @@ describe('read_file extended functionality', () => {
       expect(result.content[0].type).toBe('text');
       expect(result.content[0].text).toContain('Error');
       expect(result.content[0].text).toContain('10MB');
+    });
+
+    it('should treat SVG files as text (security)', async () => {
+      const svgPath = join(testDir, 'test.svg');
+      const svgContent = '<svg><script>alert("XSS")</script><circle/></svg>';
+      writeFileSync(svgPath, svgContent);
+
+      const result = await readFileTool(
+        { path: svgPath, offset: 0 },
+        validator,
+        mockLogger,
+        config
+      );
+
+      // SVG should be returned as text, not image
+      expect(result.content[0].type).toBe('text');
+      expect(result.content[0].text).toContain('<svg>');
+      expect(result.content[0].text).toContain('<script>');
     });
   });
 
@@ -212,12 +229,12 @@ describe('read_file extended functionality', () => {
       expect(result.content[0].text).toContain('denylist');
     });
 
-    it('should reject URLs exceeding 10MB', async () => {
+    it('should reject URLs exceeding 5MB', async () => {
       const url = 'https://example.com/large.bin';
       nock('https://example.com')
         .get('/large.bin')
         .reply(200, 'x', {
-          'content-length': '11000000', // 11MB
+          'content-length': '6000000', // 6MB
         });
 
       const result = await readFileTool(
@@ -229,7 +246,7 @@ describe('read_file extended functionality', () => {
 
       expect(result.content[0].type).toBe('text');
       expect(result.content[0].text).toContain('Error');
-      expect(result.content[0].text).toContain('10MB');
+      expect(result.content[0].text).toContain('5MB');
     });
 
     it('should handle HTTP errors', async () => {

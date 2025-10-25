@@ -4,11 +4,13 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Features
 
-- **12 Powerful Tools**: 7 filesystem + 5 terminal operations
-- **Filesystem Operations**: Read, write, list, create, search (ripgrep), edit (surgical)
+- **14 Powerful Tools**: 8 filesystem + 5 terminal + 1 meta operations
+- **Filesystem Operations**: Read (files/URLs/images), write, list, create, search (ripgrep), edit (surgical), multi-read
 - **Terminal Sessions**: Interactive REPLs (Python, Node.js) with smart prompt detection
+- **Image Support**: MCP native ImageContent for PNG, JPEG, GIF, WebP, BMP (SVG as text for security)
+- **URL Fetching**: HTTP/HTTPS with configurable timeout and denylist protection
 - **MCP Primitives**: Resources (server state) + Prompts (workflow templates)
-- **Security-First**: Path traversal protection, command filtering, input sanitization
+- **Security-First**: Path traversal protection, command filtering, input sanitization, unrestricted mode with warnings
 - **Type-Safe**: Built with TypeScript strict mode and Zod schema validation
 - **Local-Only**: Runs entirely on your machine via stdio transport
 
@@ -86,18 +88,22 @@ Create a `config.json` file (or copy from `config.example.json`):
   "fileReadLineLimit": 2000,
   "fileWriteLineLimit": 75,
   "sessionTimeout": 1800000,
-  "logLevel": "info"
+  "logLevel": "info",
+  "urlDenylist": ["localhost", "127.0.0.1", "0.0.0.0", "::1"],
+  "urlTimeout": 10000
 }
 ```
 
 ### Configuration Options
 
-- **allowedDirectories**: Array of absolute paths where file operations are permitted
-- **blockedCommands**: Array of dangerous commands to reject
+- **allowedDirectories**: Array of absolute paths where file operations are permitted (empty array = unrestricted access)
+- **blockedCommands**: Array of dangerous commands to reject (default: [])
 - **fileReadLineLimit**: Maximum lines to read per file operation (default: 1000)
 - **fileWriteLineLimit**: Maximum lines to write per operation (default: 50)
-- **sessionTimeout**: Process session timeout in milliseconds (default: 30 minutes)
-- **logLevel**: Logging level (`debug` | `info` | `warn` | `error`)
+- **sessionTimeout**: Process session timeout in milliseconds (default: 1800000 = 30 minutes)
+- **logLevel**: Logging level (`debug` | `info` | `warn` | `error`) (default: `info`)
+- **urlDenylist**: Array of hostnames to block for URL fetching (default: `["localhost", "127.0.0.1", "0.0.0.0", "::1"]`)
+- **urlTimeout**: URL fetch timeout in milliseconds (default: 10000 = 10 seconds)
 
 ### Path Formatting
 
@@ -160,9 +166,10 @@ Restart Claude Desktop to activate the server.
 
 ## Available Tools
 
-### Filesystem Tools (7)
+### Filesystem Tools (8)
 
-- **read_file**: Read file contents with optional chunking and offset support (tail mode with negative offset)
+- **read_file**: Read files or URLs with image support (PNG, JPEG, GIF, WebP, BMP), optional chunking, and offset support (SVG treated as text for security)
+- **read_multiple_files**: Read multiple files simultaneously with size caps (1MB/file, 5MB total)
 - **write_file**: Create or overwrite files with append mode option
 - **list_directory**: List directory contents recursively with depth control
 - **create_directory**: Create directories with recursive parent creation
@@ -177,6 +184,10 @@ Restart Claude Desktop to activate the server.
 - **read_process_output**: Retrieve buffered output from background processes
 - **list_sessions**: View all active terminal sessions with status
 - **terminate_process**: Stop running sessions by PID
+
+### Meta Tools (1)
+
+- **get_config**: Get current server configuration (read-only) with security status and metadata
 
 ## MCP Primitives
 
