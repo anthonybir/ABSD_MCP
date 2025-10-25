@@ -3,7 +3,7 @@ import { readMultipleFilesTool } from '../../src/tools/filesystem/read-multiple.
 import { SecurityValidator } from '../../src/security/validator.js';
 import type { Config } from '../../src/types/config.js';
 import { tmpdir } from 'node:os';
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 describe('read_multiple_files tool', () => {
@@ -25,12 +25,15 @@ describe('read_multiple_files tool', () => {
     };
 
     const config: Config = {
-      allowedDirectories: [testDir],
+      // Use resolved path for config to handle macOS symlinks
+      allowedDirectories: [realpathSync(testDir)],
       blockedCommands: [],
       fileReadLineLimit: 1000,
       fileWriteLineLimit: 50,
       sessionTimeout: 30000,
       logLevel: 'error',
+      urlDenylist: [],
+      urlTimeout: 10000,
     };
 
     validator = new SecurityValidator(config, mockLogger);
@@ -161,27 +164,24 @@ describe('read_multiple_files tool', () => {
 
     it('should show partial content when file would exceed total limit', async () => {
       // Create files under individual limit but together > 5MB
-      const file1 = join(testDir, 'file1.txt');
-      const file2 = join(testDir, 'file2.txt');
-      const file3 = join(testDir, 'file3.txt');
+      // Use smaller files for more reliable test
+      const files = [
+        { name: 'file1.txt', content: 'A'.repeat(900 * 1024) }, // 900KB
+        { name: 'file2.txt', content: 'B'.repeat(900 * 1024) }, // 900KB
+        { name: 'file3.txt', content: 'C'.repeat(900 * 1024) }, // 900KB
+        { name: 'file4.txt', content: 'D'.repeat(900 * 1024) }, // 900KB
+        { name: 'file5.txt', content: 'E'.repeat(900 * 1024) }, // 900KB (total 4.5MB)
+        { name: 'file6.txt', content: 'F'.repeat(900 * 1024) }, // 900KB - should be partial
+      ];
 
-      writeFileSync(file1, 'A'.repeat(800 * 1024)); // 800KB
-      writeFileSync(file2, 'B'.repeat(800 * 1024)); // 800KB
-      writeFileSync(file3, 'C'.repeat(800 * 1024)); // 800KB (total ~2.4MB - won't trigger)
-
-      // Actually, to trigger partial content, last file needs to be bigger
-      const file4 = join(testDir, 'file4.txt');
-      const file5 = join(testDir, 'file5.txt');
-      const file6 = join(testDir, 'file6.txt');
-      const file7 = join(testDir, 'file7.txt');
-
-      writeFileSync(file4, 'D'.repeat(800 * 1024)); // 800KB
-      writeFileSync(file5, 'E'.repeat(800 * 1024)); // 800KB
-      writeFileSync(file6, 'F'.repeat(800 * 1024)); // 800KB (total ~4.8MB)
-      writeFileSync(file7, 'G'.repeat(800 * 1024)); // 800KB - should be partial
+      const filePaths = files.map(f => {
+        const path = join(testDir, f.name);
+        writeFileSync(path, f.content);
+        return path;
+      });
 
       const result = await readMultipleFilesTool(
-        { paths: [file1, file2, file3, file4, file5, file6, file7] },
+        { paths: filePaths },
         validator,
         mockLogger
       );

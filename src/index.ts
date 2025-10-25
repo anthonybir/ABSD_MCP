@@ -8,7 +8,7 @@ async function main() {
   const configPath = process.env.ABSD_MCP_CONFIG;
 
   // Create server
-  const { server, logger } = createServer(configPath);
+  const { server, logger, sessionManager, searchManager } = createServer(configPath);
 
   // Create stdio transport
   const transport = new StdioServerTransport();
@@ -21,6 +21,11 @@ async function main() {
   // Handle graceful shutdown
   const shutdown = async () => {
     logger.info('Shutting down server...');
+
+    // Dispose managers to clean up resources
+    sessionManager.dispose();
+    searchManager.dispose();
+
     await server.close();
     process.exit(0);
   };

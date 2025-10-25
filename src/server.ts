@@ -29,6 +29,22 @@ import { getFileInfoTool, getFileInfoToolDefinition, type GetFileInfoArgs } from
 import { searchFilesTool, searchFilesToolDefinition, type SearchFilesArgs } from './tools/filesystem/search.js';
 import { editBlockTool, editBlockToolDefinition, type EditBlockArgs } from './tools/filesystem/edit.js';
 
+// Import streaming search
+import { SearchSessionManager } from './tools/filesystem/search-manager.js';
+import {
+  startSearchTool,
+  startSearchToolDefinition,
+  type StartSearchArgs,
+  getMoreSearchResultsTool,
+  getMoreSearchResultsToolDefinition,
+  type GetMoreSearchResultsArgs,
+  stopSearchTool,
+  stopSearchToolDefinition,
+  type StopSearchArgs,
+  listSearchesTool,
+  listSearchesToolDefinition,
+} from './tools/filesystem/search-streaming.js';
+
 // Import terminal tools
 import { SessionManager } from './tools/terminal/session.js';
 import { startProcessTool, startProcessToolDefinition, type StartProcessArgs } from './tools/terminal/process.js';
@@ -62,6 +78,9 @@ export function createServer(configPath?: string) {
   // Create session manager for terminal tools
   const sessionManager = new SessionManager(logger, config.sessionTimeout);
 
+  // Create search session manager for streaming search
+  const searchManager = new SearchSessionManager(logger);
+
   // Create server
   const server = new Server(
     {
@@ -94,6 +113,11 @@ export function createServer(configPath?: string) {
         getFileInfoToolDefinition,
         searchFilesToolDefinition,
         editBlockToolDefinition,
+        // Streaming search tools
+        startSearchToolDefinition,
+        getMoreSearchResultsToolDefinition,
+        stopSearchToolDefinition,
+        listSearchesToolDefinition,
         // Terminal tools
         startProcessToolDefinition,
         interactWithProcessToolDefinition,
@@ -140,6 +164,19 @@ export function createServer(configPath?: string) {
 
         case 'edit_block':
           return await editBlockTool(args as EditBlockArgs, validator, logger);
+
+        // Streaming search tools
+        case 'start_search':
+          return await startSearchTool(args as StartSearchArgs, validator, logger, searchManager);
+
+        case 'get_more_search_results':
+          return await getMoreSearchResultsTool(args as GetMoreSearchResultsArgs, logger, searchManager);
+
+        case 'stop_search':
+          return await stopSearchTool(args as StopSearchArgs, logger, searchManager);
+
+        case 'list_searches':
+          return await listSearchesTool(logger, searchManager);
 
         // Terminal tools
         case 'start_process':
@@ -227,5 +264,5 @@ export function createServer(configPath?: string) {
     logLevel: config.logLevel,
   }, 'Server initialized');
 
-  return { server, logger };
+  return { server, logger, sessionManager, searchManager };
 }
