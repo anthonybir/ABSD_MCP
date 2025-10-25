@@ -4,8 +4,8 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Features
 
-- **20 Powerful Tools**: 8 filesystem + 4 streaming search + 7 terminal + 1 meta operations
-- **Filesystem Operations**: Read (files/URLs/images), write, list, create, search (ripgrep), edit (surgical), multi-read
+- **21 Powerful Tools**: 9 filesystem + 4 streaming search + 7 terminal + 1 meta operations
+- **Filesystem Operations**: Read (files/URLs/images), write, list, create, move/rename, search (ripgrep), edit (surgical), multi-read
 - **Streaming Search**: Background ripgrep with pagination, session management, and early termination
 - **Terminal Sessions**: Interactive REPLs (Python, Node.js) with ANSI-aware prompt detection
 - **Process Management**: List system processes, kill with confirmation tokens
@@ -168,13 +168,14 @@ Restart Claude Desktop to activate the server.
 
 ## Available Tools
 
-### Filesystem Tools (8)
+### Filesystem Tools (9)
 
 - **read_file**: Read files or URLs with image support (PNG, JPEG, GIF, WebP, BMP), optional chunking, and offset support (SVG treated as text for security)
 - **read_multiple_files**: Read multiple files simultaneously with size caps (1MB/file, 5MB total)
 - **write_file**: Create or overwrite files with append mode option
 - **list_directory**: List directory contents recursively with depth control
 - **create_directory**: Create directories with recursive parent creation
+- **move_file**: Move or rename files and directories (both paths validated for security)
 - **get_file_info**: Get detailed metadata (size, permissions, timestamps, line count)
 - **search_files**: Search for patterns using ripgrep (regex, literal, file filtering)
 - **edit_block**: Surgical text replacement with uniqueness validation

@@ -28,6 +28,7 @@ import { createDirectoryTool, createDirectoryToolDefinition, type CreateDirector
 import { getFileInfoTool, getFileInfoToolDefinition, type GetFileInfoArgs } from './tools/filesystem/info.js';
 import { searchFilesTool, searchFilesToolDefinition, type SearchFilesArgs } from './tools/filesystem/search.js';
 import { editBlockTool, editBlockToolDefinition, type EditBlockArgs } from './tools/filesystem/edit.js';
+import { moveFileTool, moveFileToolDefinition, type MoveFileArgs } from './tools/filesystem/move.js';
 
 // Import streaming search
 import { SearchSessionManager } from './tools/filesystem/search-manager.js';
@@ -92,7 +93,7 @@ export function createServer(configPath?: string) {
   const server = new Server(
     {
       name: '@absd/devops-mcp',
-      version: '0.3.0',
+      version: '0.3.1',
     },
     {
       capabilities: {
@@ -120,6 +121,7 @@ export function createServer(configPath?: string) {
         getFileInfoToolDefinition,
         searchFilesToolDefinition,
         editBlockToolDefinition,
+        moveFileToolDefinition,
         // Streaming search tools
         startSearchToolDefinition,
         getMoreSearchResultsToolDefinition,
@@ -173,6 +175,9 @@ export function createServer(configPath?: string) {
 
         case 'edit_block':
           return await editBlockTool(args as EditBlockArgs, validator, logger);
+
+        case 'move_file':
+          return await moveFileTool(args as MoveFileArgs, validator, logger);
 
         // Streaming search tools
         case 'start_search':
