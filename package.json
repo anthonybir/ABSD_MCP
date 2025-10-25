@@ -28,6 +28,14 @@
   ],
   "author": "Anthony Bir <anthonybir@aena.edu.py>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonybir/ABSD_MCP.git"
+  },
+  "homepage": "https://github.com/anthonybir/ABSD_MCP#readme",
+  "bugs": {
+    "url": "https://github.com/anthonybir/ABSD_MCP/issues"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
