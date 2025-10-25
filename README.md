@@ -14,17 +14,50 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Installation
 
-### Using npx (Recommended)
+### Quick Start (Recommended)
+
+```bash
+# 1. Install globally
+npm install -g @anthonybir/devops-mcp
+
+# 2. Run setup (interactive)
+absd-mcp-setup
+```
+
+The setup command will:
+- ✅ Add MCP server to Claude Desktop config
+- ✅ Create default config at `~/ABSD_MCP/config.json`
+- ✅ Backup your existing Claude config with timestamp
+
+**⚠️ Security Warning:** Default config allows access to your entire home directory.
+Review and restrict `allowedDirectories` immediately after setup.
+
+**Next steps:**
+1. Review config: `~/ABSD_MCP/config.json` (macOS) or `%USERPROFILE%\ABSD_MCP\config.json` (Windows)
+2. Restrict `allowedDirectories` to only needed paths
+3. Restart Claude Desktop
+
+### Uninstall
+
+```bash
+# Remove from Claude Desktop config
+absd-mcp-unregister
+
+# Uninstall package
+npm uninstall -g @anthonybir/devops-mcp
+```
+
+### Manual Setup
+
+If you prefer manual configuration, see [Claude Desktop Setup](#claude-desktop-setup) below.
+
+### Using npx (No Installation)
 
 ```bash
 npx @anthonybir/devops-mcp@latest
 ```
 
-### Using npm
-
-```bash
-npm install -g @anthonybir/devops-mcp
-```
+Requires manual Claude Desktop configuration (see below).
 
 ### From Source
 
@@ -66,13 +99,44 @@ Create a `config.json` file (or copy from `config.example.json`):
 - **sessionTimeout**: Process session timeout in milliseconds (default: 30 minutes)
 - **logLevel**: Logging level (`debug` | `info` | `warn` | `error`)
 
+### Path Formatting
+
+**Windows users:** Use forward slashes in JSON to avoid escaping issues:
+- ✅ `"C:/Users/yourusername/Projects"`
+- ✅ `"C:\\\\Users\\\\yourusername\\\\Projects"` (double-escaped backslashes)
+- ❌ `"C:\Users\yourusername\Projects"` (breaks JSON)
+
+**macOS/Linux users:** Standard absolute paths:
+- ✅ `"/Users/yourusername/Projects"`
+- ✅ `"/home/username/projects"`
+
 ## Claude Desktop Setup
 
-Add to your Claude Desktop configuration:
+**Config File Locations:**
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+### Option 1: Using Installed Package (Offline-Compatible)
 
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+If you installed globally, reference the bin entry:
+
+```json
+{
+  "mcpServers": {
+    "absd-devops": {
+      "command": "absd-mcp",
+      "args": [],
+      "env": {
+        "ABSD_MCP_CONFIG": "/path/to/your/config.json"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Using npx (Online-Only)
+
+If using npx or want latest version:
 
 ```json
 {
@@ -87,6 +151,10 @@ Add to your Claude Desktop configuration:
   }
 }
 ```
+
+**ABSD_MCP_CONFIG paths:**
+- **macOS:** Use full path like `/Users/yourusername/ABSD_MCP/config.json`
+- **Windows:** Use forward slashes like `C:/Users/yourusername/ABSD_MCP/config.json`
 
 Restart Claude Desktop to activate the server.
 

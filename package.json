@@ -1,11 +1,13 @@
 {
   "name": "@anthonybir/devops-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ABSD DevOps MCP Server - Local filesystem & terminal operations",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "absd-mcp": "./dist/index.js"
+    "absd-mcp": "./dist/index.js",
+    "absd-mcp-setup": "./dist/scripts/register-claude-config.js",
+    "absd-mcp-unregister": "./dist/scripts/unregister-claude-config.js"
   },
   "files": [
     "dist",
@@ -14,10 +16,12 @@
   ],
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --clean --minify",
+    "build": "tsup",
     "test": "vitest",
     "test:security": "vitest tests/security",
-    "prepublishOnly": "pnpm test && pnpm build"
+    "prepublishOnly": "pnpm test && pnpm build",
+    "setup": "node dist/scripts/register-claude-config.js",
+    "unregister": "node dist/scripts/unregister-claude-config.js"
   },
   "keywords": [
     "mcp",
