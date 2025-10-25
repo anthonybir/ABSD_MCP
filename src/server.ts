@@ -5,18 +5,36 @@ import { loadConfig } from './security/config.js';
 import { createLogger } from './utils/logger.js';
 import { wrapError } from './utils/errors.js';
 
-// Import tools
+// Import filesystem tools
 import { readFileTool, readFileToolDefinition, type ReadFileArgs } from './tools/filesystem/read.js';
 import { writeFileTool, writeFileToolDefinition, type WriteFileArgs } from './tools/filesystem/write.js';
 import { listDirectoryTool, listDirectoryToolDefinition, type ListDirectoryArgs } from './tools/filesystem/list.js';
 import { createDirectoryTool, createDirectoryToolDefinition, type CreateDirectoryArgs } from './tools/filesystem/create.js';
 import { getFileInfoTool, getFileInfoToolDefinition, type GetFileInfoArgs } from './tools/filesystem/info.js';
 
+// Import terminal tools
+import { SessionManager } from './tools/terminal/session.js';
+import { startProcessTool, startProcessToolDefinition, type StartProcessArgs } from './tools/terminal/process.js';
+import { interactWithProcessTool, interactWithProcessToolDefinition, type InteractArgs } from './tools/terminal/interact.js';
+import {
+  readProcessOutputTool,
+  readProcessOutputToolDefinition,
+  type ReadProcessOutputArgs,
+  listSessionsTool,
+  listSessionsToolDefinition,
+  terminateProcessTool,
+  terminateProcessToolDefinition,
+  type TerminateProcessArgs
+} from './tools/terminal/management.js';
+
 export function createServer(configPath?: string) {
   // Load configuration
   const config = loadConfig(configPath);
   const logger = createLogger(config);
   const validator = new SecurityValidator(config);
+
+  // Create session manager for terminal tools
+  const sessionManager = new SessionManager(logger, config.sessionTimeout);
 
   // Create server
   const server = new Server(
@@ -37,11 +55,18 @@ export function createServer(configPath?: string) {
 
     return {
       tools: [
+        // Filesystem tools
         readFileToolDefinition,
         writeFileToolDefinition,
         listDirectoryToolDefinition,
         createDirectoryToolDefinition,
         getFileInfoToolDefinition,
+        // Terminal tools
+        startProcessToolDefinition,
+        interactWithProcessToolDefinition,
+        readProcessOutputToolDefinition,
+        listSessionsToolDefinition,
+        terminateProcessToolDefinition,
       ],
     };
   });
@@ -54,6 +79,7 @@ export function createServer(configPath?: string) {
 
     try {
       switch (name) {
+        // Filesystem tools
         case 'read_file':
           return await readFileTool(args as ReadFileArgs, validator, logger, config);
 
@@ -68,6 +94,22 @@ export function createServer(configPath?: string) {
 
         case 'get_file_info':
           return await getFileInfoTool(args as GetFileInfoArgs, validator, logger);
+
+        // Terminal tools
+        case 'start_process':
+          return await startProcessTool(args as StartProcessArgs, sessionManager, validator, logger);
+
+        case 'interact_with_process':
+          return await interactWithProcessTool(args as InteractArgs, sessionManager, logger);
+
+        case 'read_process_output':
+          return await readProcessOutputTool(args as ReadProcessOutputArgs, sessionManager, logger);
+
+        case 'list_sessions':
+          return await listSessionsTool(sessionManager, logger);
+
+        case 'terminate_process':
+          return await terminateProcessTool(args as TerminateProcessArgs, sessionManager, logger);
 
         default:
           throw new Error(`Unknown tool: ${name}`);
