@@ -4,9 +4,11 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Features
 
-- **14 Powerful Tools**: 8 filesystem + 5 terminal + 1 meta operations
+- **20 Powerful Tools**: 8 filesystem + 4 streaming search + 7 terminal + 1 meta operations
 - **Filesystem Operations**: Read (files/URLs/images), write, list, create, search (ripgrep), edit (surgical), multi-read
-- **Terminal Sessions**: Interactive REPLs (Python, Node.js) with smart prompt detection
+- **Streaming Search**: Background ripgrep with pagination, session management, and early termination
+- **Terminal Sessions**: Interactive REPLs (Python, Node.js) with ANSI-aware prompt detection
+- **Process Management**: List system processes, kill with confirmation tokens
 - **Image Support**: MCP native ImageContent for PNG, JPEG, GIF, WebP, BMP (SVG as text for security)
 - **URL Fetching**: HTTP/HTTPS with configurable timeout and denylist protection
 - **MCP Primitives**: Resources (server state) + Prompts (workflow templates)
@@ -177,13 +179,22 @@ Restart Claude Desktop to activate the server.
 - **search_files**: Search for patterns using ripgrep (regex, literal, file filtering)
 - **edit_block**: Surgical text replacement with uniqueness validation
 
-### Terminal Tools (5)
+### Streaming Search Tools (4)
+
+- **start_search**: Initiate background ripgrep search with files or content mode
+- **get_more_search_results**: Retrieve paginated results with offset-based navigation
+- **stop_search**: Terminate running search sessions early
+- **list_searches**: View all active search sessions with status and result counts
+
+### Terminal Tools (7)
 
 - **start_process**: Launch interactive terminal sessions (Python, Node.js, bash)
-- **interact_with_process**: Send commands with smart REPL prompt detection
+- **interact_with_process**: Send commands with ANSI-aware REPL prompt detection (strip-ansi)
 - **read_process_output**: Retrieve buffered output from background processes
-- **list_sessions**: View all active terminal sessions with status
-- **terminate_process**: Stop running sessions by PID
+- **list_sessions**: View all active MCP terminal sessions with status
+- **terminate_process**: Stop MCP sessions by PID
+- **list_processes**: List all system processes (cross-platform: Windows/macOS/Linux)
+- **kill_process**: Kill system processes with confirmation token validation
 
 ### Meta Tools (1)
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import stripAnsi from 'strip-ansi';
 import type { SessionManager } from './session.js';
 import { wrapError } from '../../utils/errors.js';
 import type { Logger } from '../../utils/logger.js';
@@ -15,9 +16,12 @@ export type InteractArgs = z.infer<typeof InteractSchema>;
 
 /**
  * Detect if output contains a REPL prompt or completion indicator
+ * Strips ANSI escape codes for reliable pattern matching
  */
 function detectPromptOrCompletion(output: string): { hasPrompt: boolean; hasError: boolean; isComplete: boolean } {
-  const lastLines = output.slice(-200); // Check last 200 chars
+  // Strip ANSI codes (colors, cursor positioning) for clean pattern matching
+  const cleanOutput = stripAnsi(output);
+  const lastLines = cleanOutput.slice(-200); // Check last 200 chars
 
   // Common REPL prompts
   const promptPatterns = [
@@ -44,7 +48,7 @@ function detectPromptOrCompletion(output: string): { hasPrompt: boolean; hasErro
     /undefined/i,
   ];
 
-  const hasError = errorPatterns.some(pattern => pattern.test(output));
+  const hasError = errorPatterns.some(pattern => pattern.test(cleanOutput));
 
   // Completion indicators (process finished)
   const completePatterns = [
@@ -53,7 +57,7 @@ function detectPromptOrCompletion(output: string): { hasPrompt: boolean; hasErro
     /exit code/i,
   ];
 
-  const isComplete = completePatterns.some(pattern => pattern.test(output));
+  const isComplete = completePatterns.some(pattern => pattern.test(cleanOutput));
 
   return { hasPrompt, hasError, isComplete };
 }

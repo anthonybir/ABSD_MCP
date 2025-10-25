@@ -59,6 +59,13 @@ import {
   terminateProcessToolDefinition,
   type TerminateProcessArgs
 } from './tools/terminal/management.js';
+import {
+  listProcessesTool,
+  listProcessesToolDefinition,
+  killProcessTool,
+  killProcessToolDefinition,
+  type KillProcessArgs
+} from './tools/terminal/system.js';
 
 export function createServer(configPath?: string) {
   // Load configuration
@@ -85,7 +92,7 @@ export function createServer(configPath?: string) {
   const server = new Server(
     {
       name: '@absd/devops-mcp',
-      version: '0.1.0',
+      version: '0.3.0',
     },
     {
       capabilities: {
@@ -124,6 +131,8 @@ export function createServer(configPath?: string) {
         readProcessOutputToolDefinition,
         listSessionsToolDefinition,
         terminateProcessToolDefinition,
+        listProcessesToolDefinition,
+        killProcessToolDefinition,
       ],
     };
   });
@@ -193,6 +202,12 @@ export function createServer(configPath?: string) {
 
         case 'terminate_process':
           return await terminateProcessTool(args as TerminateProcessArgs, sessionManager, logger);
+
+        case 'list_processes':
+          return await listProcessesTool(logger);
+
+        case 'kill_process':
+          return await killProcessTool(args as KillProcessArgs, logger);
 
         default:
           throw new Error(`Unknown tool: ${name}`);
