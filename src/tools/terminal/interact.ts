@@ -18,23 +18,33 @@ export type InteractArgs = z.infer<typeof InteractSchema>;
  * Detect if output contains a REPL prompt or completion indicator
  * Strips ANSI escape codes for reliable pattern matching
  */
-function detectPromptOrCompletion(output: string): { hasPrompt: boolean; hasError: boolean; isComplete: boolean } {
+function detectPromptOrCompletion(
+  output: string,
+  logger?: Logger
+): { hasPrompt: boolean; hasError: boolean; isComplete: boolean; matchedPattern?: string } {
   // Strip ANSI codes (colors, cursor positioning) for clean pattern matching
   const cleanOutput = stripAnsi(output);
   const lastLines = cleanOutput.slice(-200); // Check last 200 chars
 
-  // Common REPL prompts
+  // Common REPL prompts (expanded for better coverage)
   const promptPatterns = [
     />>>\s*$/, // Python
     /\.\.\.\s*$/, // Python continuation
     />\s*$/, // Node.js, many REPLs
-    /\$\s*$/, // Bash
+    /\$\s*$/, // Bash (no trailing space)
+    /\$ $/, // Bash with trailing space
+    />$/, // PowerShell
     /#\s*$/, // Root shell
     /\*\s*$/, // Some REPLs
     /:\s*$/, // Some interactive prompts
+    /In \[\d+\]:\s*$/, // IPython/Jupyter input
+    /Out\[\d+\]:\s*$/, // IPython/Jupyter output
+    /irb\(\w+\):\d+:\d+[*>]\s*$/, // Ruby IRB
+    /\w+>\s*$/, // SQL shells (mysql>, psql>, sqlite>)
   ];
 
-  const hasPrompt = promptPatterns.some(pattern => pattern.test(lastLines));
+  const matchedPattern = promptPatterns.find(pattern => pattern.test(lastLines));
+  const hasPrompt = !!matchedPattern;
 
   // Error indicators
   const errorPatterns = [
@@ -59,7 +69,19 @@ function detectPromptOrCompletion(output: string): { hasPrompt: boolean; hasErro
 
   const isComplete = completePatterns.some(pattern => pattern.test(cleanOutput));
 
-  return { hasPrompt, hasError, isComplete };
+  // Debug logging (only when logger provided)
+  if (logger) {
+    logger.debug({
+      lastOutput: lastLines,
+      hasPrompt,
+      hasError,
+      isComplete,
+      matchedPattern: matchedPattern?.source,
+      outputLength: output.length,
+    }, 'Prompt detection result');
+  }
+
+  return { hasPrompt, hasError, isComplete, matchedPattern: matchedPattern?.source };
 }
 
 export async function interactWithProcessTool(
@@ -90,8 +112,8 @@ export async function interactWithProcessTool(
     // Clear buffer before sending input
     session.outputBuffer = [];
 
-    // Send input (add \\r for proper REPL handling)
-    session.ptyProcess.write(args.input + '\\r');
+    // Send input (add newline for proper REPL handling)
+    session.ptyProcess.write(args.input + '\n');
     session.state = 'running';
 
     // Wait for output with smart detection
@@ -105,7 +127,7 @@ export async function interactWithProcessTool(
           const elapsed = Date.now() - startTime;
           output = session.outputBuffer.join('');
 
-          const detection = detectPromptOrCompletion(output);
+          const detection = detectPromptOrCompletion(output, logger);
 
           // Early exit conditions
           if (detection.hasPrompt || detection.hasError || detection.isComplete || elapsed > args.timeout) {
@@ -129,7 +151,7 @@ export async function interactWithProcessTool(
     }
 
     const elapsed = Date.now() - startTime;
-    const detection = detectPromptOrCompletion(output);
+    const detection = detectPromptOrCompletion(output, logger);
 
     // Determine status
     let status = 'completed';

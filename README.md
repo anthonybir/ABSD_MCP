@@ -4,7 +4,7 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 
 ## Features
 
-- **21 Powerful Tools**: 9 filesystem + 4 streaming search + 7 terminal + 1 meta operations
+- **22 Powerful Tools**: 9 filesystem + 4 streaming search + 7 terminal + 2 meta operations
 - **Filesystem Operations**: Read (files/URLs/images), write, list, create, move/rename, search (ripgrep), edit (surgical), multi-read
 - **Streaming Search**: Background ripgrep with pagination, session management, and early termination
 - **Terminal Sessions**: Interactive REPLs (Python, Node.js) with ANSI-aware prompt detection
@@ -15,6 +15,8 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 - **Security-First**: Path traversal protection, command filtering, input sanitization, unrestricted mode with warnings
 - **Type-Safe**: Built with TypeScript strict mode and Zod schema validation
 - **Local-Only**: Runs entirely on your machine via stdio transport
+
+⚠️ **v0.3.2 Security Update:** Default blocked commands expanded from 6 to 31 (destructive disk operations, system/network modifications, package manager removals, data destruction). **Existing installations:** Review your `~/ABSD_MCP/config.json` and merge new blocked commands from [config.example.json](config.example.json) to benefit from enhanced security.
 
 ## Installation
 
@@ -85,7 +87,10 @@ Create a `config.json` file (or copy from `config.example.json`):
   "blockedCommands": [
     "rm -rf /",
     "dd if=/dev/zero",
-    "mkfs"
+    "mkfs",
+    "shutdown",
+    "reboot"
+    // ... see config.example.json for full list of 31 default blocked commands
   ],
   "fileReadLineLimit": 2000,
   "fileWriteLineLimit": 75,
@@ -183,6 +188,8 @@ Restart Claude Desktop to activate the server.
 ### Streaming Search Tools (4)
 
 - **start_search**: Initiate background ripgrep search with files or content mode
+  - `contextLines`: Lines of context around matches (default: 3)
+  - **Tip:** Set `contextLines: 0` for terse output with no surrounding context
 - **get_more_search_results**: Retrieve paginated results with offset-based navigation
 - **stop_search**: Terminate running search sessions early
 - **list_searches**: View all active search sessions with status and result counts
@@ -197,9 +204,10 @@ Restart Claude Desktop to activate the server.
 - **list_processes**: List all system processes (cross-platform: Windows/macOS/Linux)
 - **kill_process**: Kill system processes with confirmation token validation
 
-### Meta Tools (1)
+### Meta Tools (2)
 
 - **get_config**: Get current server configuration (read-only) with security status and metadata
+- **get_usage_stats**: Get server usage statistics including uptime, tool call counts (successful calls only), and active sessions/searches. Stats reset when server restarts.
 
 ## MCP Primitives
 

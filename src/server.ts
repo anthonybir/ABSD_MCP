@@ -18,6 +18,12 @@ import { getPromptDefinitions, getPromptMessages } from './prompts/index.js';
 
 // Import meta tools
 import { getConfigTool, getConfigToolDefinition, type GetConfigArgs } from './tools/meta/get-config.js';
+import {
+  getUsageStatsTool,
+  getUsageStatsToolDefinition,
+  UsageTracker,
+  type GetUsageStatsArgs
+} from './tools/meta/usage-stats.js';
 
 // Import filesystem tools
 import { readFileTool, readFileToolDefinition, type ReadFileArgs } from './tools/filesystem/read.js';
@@ -89,11 +95,14 @@ export function createServer(configPath?: string) {
   // Create search session manager for streaming search
   const searchManager = new SearchSessionManager(logger);
 
+  // Create usage tracker for stats (in-memory, resets on restart)
+  const usageTracker = new UsageTracker();
+
   // Create server
   const server = new Server(
     {
       name: '@absd/devops-mcp',
-      version: '0.3.1',
+      version: '0.3.2',
     },
     {
       capabilities: {
@@ -112,6 +121,7 @@ export function createServer(configPath?: string) {
       tools: [
         // Meta tools
         getConfigToolDefinition,
+        getUsageStatsToolDefinition,
         // Filesystem tools
         readFileToolDefinition,
         readMultipleFilesToolDefinition,
@@ -146,77 +156,110 @@ export function createServer(configPath?: string) {
     logger.info({ tool: name, args }, 'Tool called');
 
     try {
+      // Execute tool and store result
+      let result: ToolResult;
+
       switch (name) {
         // Meta tools
         case 'get_config':
-          return await getConfigTool(config);
+          result = await getConfigTool(config);
+          break;
+
+        case 'get_usage_stats':
+          result = await getUsageStatsTool(usageTracker, sessionManager, searchManager, logger);
+          break;
 
         // Filesystem tools
         case 'read_file':
-          return await readFileTool(args as ReadFileArgs, validator, logger, config);
+          result = await readFileTool(args as ReadFileArgs, validator, logger, config);
+          break;
 
         case 'read_multiple_files':
-          return await readMultipleFilesTool(args as ReadMultipleFilesArgs, validator, logger);
+          result = await readMultipleFilesTool(args as ReadMultipleFilesArgs, validator, logger);
+          break;
 
         case 'write_file':
-          return await writeFileTool(args as WriteFileArgs, validator, logger, config);
+          result = await writeFileTool(args as WriteFileArgs, validator, logger, config);
+          break;
 
         case 'list_directory':
-          return await listDirectoryTool(args as ListDirectoryArgs, validator, logger);
+          result = await listDirectoryTool(args as ListDirectoryArgs, validator, logger);
+          break;
 
         case 'create_directory':
-          return await createDirectoryTool(args as CreateDirectoryArgs, validator, logger);
+          result = await createDirectoryTool(args as CreateDirectoryArgs, validator, logger);
+          break;
 
         case 'get_file_info':
-          return await getFileInfoTool(args as GetFileInfoArgs, validator, logger);
+          result = await getFileInfoTool(args as GetFileInfoArgs, validator, logger);
+          break;
 
         case 'search_files':
-          return await searchFilesTool(args as SearchFilesArgs, validator, logger);
+          result = await searchFilesTool(args as SearchFilesArgs, validator, logger);
+          break;
 
         case 'edit_block':
-          return await editBlockTool(args as EditBlockArgs, validator, logger);
+          result = await editBlockTool(args as EditBlockArgs, validator, logger);
+          break;
 
         case 'move_file':
-          return await moveFileTool(args as MoveFileArgs, validator, logger);
+          result = await moveFileTool(args as MoveFileArgs, validator, logger);
+          break;
 
         // Streaming search tools
         case 'start_search':
-          return await startSearchTool(args as StartSearchArgs, validator, logger, searchManager);
+          result = await startSearchTool(args as StartSearchArgs, validator, logger, searchManager);
+          break;
 
         case 'get_more_search_results':
-          return await getMoreSearchResultsTool(args as GetMoreSearchResultsArgs, logger, searchManager);
+          result = await getMoreSearchResultsTool(args as GetMoreSearchResultsArgs, logger, searchManager);
+          break;
 
         case 'stop_search':
-          return await stopSearchTool(args as StopSearchArgs, logger, searchManager);
+          result = await stopSearchTool(args as StopSearchArgs, logger, searchManager);
+          break;
 
         case 'list_searches':
-          return await listSearchesTool(logger, searchManager);
+          result = await listSearchesTool(logger, searchManager);
+          break;
 
         // Terminal tools
         case 'start_process':
-          return await startProcessTool(args as StartProcessArgs, sessionManager, validator, logger);
+          result = await startProcessTool(args as StartProcessArgs, sessionManager, validator, logger);
+          break;
 
         case 'interact_with_process':
-          return await interactWithProcessTool(args as InteractArgs, sessionManager, logger);
+          result = await interactWithProcessTool(args as InteractArgs, sessionManager, logger);
+          break;
 
         case 'read_process_output':
-          return await readProcessOutputTool(args as ReadProcessOutputArgs, sessionManager, logger);
+          result = await readProcessOutputTool(args as ReadProcessOutputArgs, sessionManager, logger);
+          break;
 
         case 'list_sessions':
-          return await listSessionsTool(sessionManager, logger);
+          result = await listSessionsTool(sessionManager, logger);
+          break;
 
         case 'terminate_process':
-          return await terminateProcessTool(args as TerminateProcessArgs, sessionManager, logger);
+          result = await terminateProcessTool(args as TerminateProcessArgs, sessionManager, logger);
+          break;
 
         case 'list_processes':
-          return await listProcessesTool(logger);
+          result = await listProcessesTool(logger);
+          break;
 
         case 'kill_process':
-          return await killProcessTool(args as KillProcessArgs, logger);
+          result = await killProcessTool(args as KillProcessArgs, logger);
+          break;
 
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
+
+      // Only increment usage counter on successful execution (not in catch block)
+      usageTracker.incrementToolCall(name);
+
+      return result;
     } catch (error) {
       const mcpError = wrapError(error, `Tool ${name}`);
       logger.error({ error: mcpError, tool: name, args }, 'Tool execution failed');

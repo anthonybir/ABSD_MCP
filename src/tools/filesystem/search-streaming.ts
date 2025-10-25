@@ -15,7 +15,7 @@ export const StartSearchSchema = z.object({
   filePattern: z.string().optional().describe('File glob pattern to filter (e.g., "*.ts", "*.{js,ts}")'),
   ignoreCase: z.boolean().default(true).describe('Case-insensitive search'),
   literalSearch: z.boolean().default(false).describe('Treat pattern as literal string (not regex)'),
-  contextLines: z.number().int().min(0).max(10).default(0).describe('Lines of context for content search'),
+  contextLines: z.number().int().min(0).max(10).default(3).describe('Lines of context for content search (default: 3, set to 0 for terse output)'),
   maxResults: z.number().int().positive().optional().describe('Maximum number of results'),
   timeout: z.number().int().positive().optional().describe('Search timeout in milliseconds'),
 });
