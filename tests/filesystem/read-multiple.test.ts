@@ -16,6 +16,9 @@ describe('read_multiple_files tool', () => {
     testDir = join(tmpdir(), `absd-mcp-test-${Date.now()}`);
     mkdirSync(testDir, { recursive: true });
 
+    // Resolve symlinks AFTER directory creation (macOS /tmp -> /private/var/folders)
+    testDir = realpathSync(testDir);
+
     // Mock logger
     mockLogger = {
       debug: () => {},
@@ -25,8 +28,8 @@ describe('read_multiple_files tool', () => {
     };
 
     const config: Config = {
-      // Use resolved path for config to handle macOS symlinks
-      allowedDirectories: [realpathSync(testDir)],
+      // Use resolved path for config (testDir already resolved above)
+      allowedDirectories: [testDir],
       blockedCommands: [],
       fileReadLineLimit: 1000,
       fileWriteLineLimit: 50,
