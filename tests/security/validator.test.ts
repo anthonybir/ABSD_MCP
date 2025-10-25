@@ -9,12 +9,21 @@ describe('SecurityValidator - Path Traversal Protection', () => {
   let validator: SecurityValidator;
   let testDir: string;
   let allowedDir: string;
+  let mockLogger: any;
 
   beforeEach(() => {
     // Create temp test directory
     testDir = join(tmpdir(), `absd-mcp-test-${Date.now()}`);
     allowedDir = join(testDir, 'allowed');
     mkdirSync(allowedDir, { recursive: true });
+
+    // Mock logger
+    mockLogger = {
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+    };
 
     const config: Config = {
       allowedDirectories: [allowedDir],
@@ -25,7 +34,7 @@ describe('SecurityValidator - Path Traversal Protection', () => {
       logLevel: 'error',
     };
 
-    validator = new SecurityValidator(config);
+    validator = new SecurityValidator(config, mockLogger);
   });
 
   it.afterEach(() => {
@@ -137,6 +146,81 @@ describe('SecurityValidator - Path Traversal Protection', () => {
       const input = 'Valid input with émojis 🎉 and special chars: @#$%';
       const sanitized = validator.sanitizeInput(input);
       expect(sanitized).toBe(input);
+    });
+  });
+
+  describe('Unrestricted Access Mode', () => {
+    let unrestrictedValidator: SecurityValidator;
+    let mockLogger: any;
+
+    beforeEach(() => {
+      // Mock logger to capture warnings
+      mockLogger = {
+        debug: () => {},
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+      };
+
+      const unrestrictedConfig: Config = {
+        allowedDirectories: [], // Empty = unrestricted
+        blockedCommands: ['rm -rf /', 'shutdown'], // Still have command blocks
+        fileReadLineLimit: 1000,
+        fileWriteLineLimit: 50,
+        sessionTimeout: 30000,
+        logLevel: 'error',
+      };
+
+      unrestrictedValidator = new SecurityValidator(unrestrictedConfig, mockLogger);
+    });
+
+    it('should allow access to ANY path when allowedDirectories is empty', () => {
+      const paths = [
+        '/etc/passwd',
+        '/usr/bin/bash',
+        '/tmp/test.txt',
+        '/var/log/system.log',
+        'C:/Windows/System32', // Windows path
+      ];
+
+      for (const path of paths) {
+        const result = unrestrictedValidator.validatePath(path);
+        expect(result.valid).toBe(true);
+        expect(result.resolvedPath).toBeDefined();
+      }
+    });
+
+    it('should still resolve symlinks in unrestricted mode', () => {
+      const outsideDir = join(testDir, 'outside');
+      mkdirSync(outsideDir);
+      const targetFile = join(outsideDir, 'target.txt');
+      writeFileSync(targetFile, 'data');
+
+      const symlinkPath = join(testDir, 'link.txt');
+      symlinkSync(targetFile, symlinkPath);
+
+      const result = unrestrictedValidator.validatePath(symlinkPath);
+      expect(result.valid).toBe(true);
+      // macOS may add /private prefix to temp paths - just check it resolves
+      expect(result.resolvedPath).toBeDefined();
+      expect(result.resolvedPath).toContain('target.txt');
+    });
+
+    it('should still block dangerous commands even in unrestricted mode', () => {
+      const result = unrestrictedValidator.validateCommand('rm -rf /');
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('bloqueado');
+    });
+
+    it('should allow safe commands in unrestricted mode', () => {
+      const result = unrestrictedValidator.validateCommand('ls -la');
+      expect(result.valid).toBe(true);
+    });
+
+    it('should detect hasUnrestrictedAccess flag correctly', () => {
+      // Access the private field through validator behavior
+      const result = unrestrictedValidator.validatePath('/some/random/path');
+      expect(result.valid).toBe(true);
     });
   });
 });

@@ -1,12 +1,29 @@
 import { resolve, normalize, dirname } from 'node:path';
 import { existsSync, realpathSync, statSync } from 'node:fs';
 import type { Config } from '../types/config.js';
+import type { Logger } from 'pino';
 
 export class SecurityValidator {
   private allowedPaths: Set<string>;
   private blockedCommands: Set<string>;
+  private readonly hasUnrestrictedAccess: boolean;
 
-  constructor(private config: Config) {
+  constructor(
+    private config: Config,
+    private logger: Logger
+  ) {
+    // Check if unrestricted access is enabled
+    this.hasUnrestrictedAccess = config.allowedDirectories.length === 0;
+
+    if (this.hasUnrestrictedAccess) {
+      logger.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.warn('⚠️  SECURITY: Unrestricted Filesystem Access');
+      logger.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.warn('allowedDirectories is EMPTY - Full filesystem access enabled');
+      logger.warn('This is DANGEROUS and NOT recommended for production');
+      logger.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    }
+
     // Normalize and resolve all allowed directories to absolute paths
     this.allowedPaths = new Set(
       config.allowedDirectories.map(dir => {
@@ -21,6 +38,8 @@ export class SecurityValidator {
   /**
    * Valida que un path esté dentro de los directorios permitidos.
    * CRITICAL: Resuelve symlinks y normaliza paths para prevenir traversal.
+   *
+   * Si allowedDirectories está vacío, permite acceso a TODO el filesystem (con warning).
    */
   validatePath(requestedPath: string): { valid: boolean; error?: string; resolvedPath?: string } {
     try {
@@ -29,9 +48,15 @@ export class SecurityValidator {
       const absolutePath = resolve(normalizedPath);
 
       // Resolve symlinks if path exists
-      const realPath = existsSync(absolutePath) 
+      const realPath = existsSync(absolutePath)
         ? realpathSync(absolutePath)
         : absolutePath;
+
+      // SI allowedDirectories está vacío → permitir TODO
+      if (this.hasUnrestrictedAccess) {
+        this.logger.debug({ path: realPath }, 'Unrestricted access granted');
+        return { valid: true, resolvedPath: realPath };
+      }
 
       // Check if path is within any allowed directory
       const isAllowed = Array.from(this.allowedPaths).some(allowedPath => {

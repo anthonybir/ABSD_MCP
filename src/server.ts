@@ -16,8 +16,12 @@ import { wrapError } from './utils/errors.js';
 import { getResourceDefinitions, getResourceContent } from './resources/index.js';
 import { getPromptDefinitions, getPromptMessages } from './prompts/index.js';
 
+// Import meta tools
+import { getConfigTool, getConfigToolDefinition, type GetConfigArgs } from './tools/meta/get-config.js';
+
 // Import filesystem tools
 import { readFileTool, readFileToolDefinition, type ReadFileArgs } from './tools/filesystem/read.js';
+import { readMultipleFilesTool, readMultipleFilesToolDefinition, type ReadMultipleFilesArgs } from './tools/filesystem/read-multiple.js';
 import { writeFileTool, writeFileToolDefinition, type WriteFileArgs } from './tools/filesystem/write.js';
 import { listDirectoryTool, listDirectoryToolDefinition, type ListDirectoryArgs } from './tools/filesystem/list.js';
 import { createDirectoryTool, createDirectoryToolDefinition, type CreateDirectoryArgs } from './tools/filesystem/create.js';
@@ -44,7 +48,16 @@ export function createServer(configPath?: string) {
   // Load configuration
   const config = loadConfig(configPath);
   const logger = createLogger(config);
-  const validator = new SecurityValidator(config);
+
+  // FAIL FAST: Check for unsafe configuration
+  if (config.allowedDirectories.length === 0 && config.blockedCommands.length === 0) {
+    logger.error('FATAL: allowedDirectories AND blockedCommands are empty');
+    logger.error('This configuration removes ALL security guardrails');
+    logger.error('Add blockedCommands or restrict allowedDirectories');
+    throw new Error('Unsafe configuration: No security constraints defined');
+  }
+
+  const validator = new SecurityValidator(config, logger);
 
   // Create session manager for terminal tools
   const sessionManager = new SessionManager(logger, config.sessionTimeout);
@@ -70,8 +83,11 @@ export function createServer(configPath?: string) {
 
     return {
       tools: [
+        // Meta tools
+        getConfigToolDefinition,
         // Filesystem tools
         readFileToolDefinition,
+        readMultipleFilesToolDefinition,
         writeFileToolDefinition,
         listDirectoryToolDefinition,
         createDirectoryToolDefinition,
@@ -96,9 +112,16 @@ export function createServer(configPath?: string) {
 
     try {
       switch (name) {
+        // Meta tools
+        case 'get_config':
+          return await getConfigTool(config);
+
         // Filesystem tools
         case 'read_file':
           return await readFileTool(args as ReadFileArgs, validator, logger, config);
+
+        case 'read_multiple_files':
+          return await readMultipleFilesTool(args as ReadMultipleFilesArgs, validator, logger);
 
         case 'write_file':
           return await writeFileTool(args as WriteFileArgs, validator, logger, config);
