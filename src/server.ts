@@ -9,6 +9,8 @@ import { wrapError } from './utils/errors.js';
 import { readFileTool, readFileToolDefinition, type ReadFileArgs } from './tools/filesystem/read.js';
 import { writeFileTool, writeFileToolDefinition, type WriteFileArgs } from './tools/filesystem/write.js';
 import { listDirectoryTool, listDirectoryToolDefinition, type ListDirectoryArgs } from './tools/filesystem/list.js';
+import { createDirectoryTool, createDirectoryToolDefinition, type CreateDirectoryArgs } from './tools/filesystem/create.js';
+import { getFileInfoTool, getFileInfoToolDefinition, type GetFileInfoArgs } from './tools/filesystem/info.js';
 
 export function createServer(configPath?: string) {
   // Load configuration
@@ -38,6 +40,8 @@ export function createServer(configPath?: string) {
         readFileToolDefinition,
         writeFileToolDefinition,
         listDirectoryToolDefinition,
+        createDirectoryToolDefinition,
+        getFileInfoToolDefinition,
       ],
     };
   });
@@ -58,6 +62,12 @@ export function createServer(configPath?: string) {
 
         case 'list_directory':
           return await listDirectoryTool(args as ListDirectoryArgs, validator, logger);
+
+        case 'create_directory':
+          return await createDirectoryTool(args as CreateDirectoryArgs, validator, logger);
+
+        case 'get_file_info':
+          return await getFileInfoTool(args as GetFileInfoArgs, validator, logger);
 
         default:
           throw new Error(`Unknown tool: ${name}`);

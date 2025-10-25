@@ -57,6 +57,7 @@ describe('SecurityValidator - Path Traversal Protection', () => {
 
     it('debe aceptar path válido dentro de allowed', () => {
       const validPath = join(allowedDir, 'test.txt');
+      writeFileSync(validPath, 'test content');
       const result = validator.validatePath(validPath);
       expect(result.valid).toBe(true);
       expect(result.resolvedPath).toBeDefined();
