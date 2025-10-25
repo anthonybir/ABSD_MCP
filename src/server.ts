@@ -11,6 +11,8 @@ import { writeFileTool, writeFileToolDefinition, type WriteFileArgs } from './to
 import { listDirectoryTool, listDirectoryToolDefinition, type ListDirectoryArgs } from './tools/filesystem/list.js';
 import { createDirectoryTool, createDirectoryToolDefinition, type CreateDirectoryArgs } from './tools/filesystem/create.js';
 import { getFileInfoTool, getFileInfoToolDefinition, type GetFileInfoArgs } from './tools/filesystem/info.js';
+import { searchFilesTool, searchFilesToolDefinition, type SearchFilesArgs } from './tools/filesystem/search.js';
+import { editBlockTool, editBlockToolDefinition, type EditBlockArgs } from './tools/filesystem/edit.js';
 
 // Import terminal tools
 import { SessionManager } from './tools/terminal/session.js';
@@ -61,6 +63,8 @@ export function createServer(configPath?: string) {
         listDirectoryToolDefinition,
         createDirectoryToolDefinition,
         getFileInfoToolDefinition,
+        searchFilesToolDefinition,
+        editBlockToolDefinition,
         // Terminal tools
         startProcessToolDefinition,
         interactWithProcessToolDefinition,
@@ -94,6 +98,12 @@ export function createServer(configPath?: string) {
 
         case 'get_file_info':
           return await getFileInfoTool(args as GetFileInfoArgs, validator, logger);
+
+        case 'search_files':
+          return await searchFilesTool(args as SearchFilesArgs, validator, logger);
+
+        case 'edit_block':
+          return await editBlockTool(args as EditBlockArgs, validator, logger);
 
         // Terminal tools
         case 'start_process':
