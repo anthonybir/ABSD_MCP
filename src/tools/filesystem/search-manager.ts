@@ -37,18 +37,48 @@ interface SearchOptions {
 
 export class SearchSessionManager {
   private sessions = new Map<string, SearchSession>();
-  private readonly MAX_SESSIONS = 10;
+  private readonly MAX_SESSIONS = 5; // Keep resource usage predictable
   private readonly SESSION_TTL = 5 * 60 * 1000; // 5 minutes
   private cleanupInterval?: NodeJS.Timeout;
+  private ripgrepAvailable: boolean | null = null; // Cached ripgrep availability
 
   constructor(private logger: Logger) {
     this.startCleanupTimer();
   }
 
   /**
+   * Check if ripgrep is available (cached after first check)
+   */
+  private async checkRipgrepAvailable(): Promise<boolean> {
+    if (this.ripgrepAvailable !== null) {
+      return this.ripgrepAvailable;
+    }
+
+    try {
+      const proc = spawn('rg', ['--version'], { stdio: 'ignore' });
+      const exitCode = await new Promise<number>((resolve) => {
+        proc.on('exit', (code) => resolve(code ?? 1));
+        proc.on('error', () => resolve(1));
+      });
+      this.ripgrepAvailable = exitCode === 0;
+      this.logger.info({ available: this.ripgrepAvailable }, 'Ripgrep availability checked');
+      return this.ripgrepAvailable;
+    } catch {
+      this.ripgrepAvailable = false;
+      return false;
+    }
+  }
+
+  /**
    * Start a new search session
    */
   async startSearch(options: SearchOptions): Promise<string> {
+    // Check ripgrep availability
+    const isAvailable = await this.checkRipgrepAvailable();
+    if (!isAvailable) {
+      throw new Error('ripgrep (rg) is not available. Please install ripgrep to use search functionality.');
+    }
+
     // Check session limit
     if (this.sessions.size >= this.MAX_SESSIONS) {
       throw new Error(`Maximum concurrent searches (${this.MAX_SESSIONS}) reached`);

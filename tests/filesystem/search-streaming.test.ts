@@ -19,6 +19,16 @@ class MockChildProcess extends EventEmitter {
   stderr = new EventEmitter();
   killed = false;
 
+  constructor(private args: string[]) {
+    super();
+    // Handle --version check immediately for ripgrep availability
+    if (args.includes('--version')) {
+      process.nextTick(() => {
+        this.emit('exit', 0);
+      });
+    }
+  }
+
   kill() {
     this.killed = true;
     this.emit('exit', 0);
@@ -27,7 +37,7 @@ class MockChildProcess extends EventEmitter {
 
 // Mock spawn
 vi.mock('node:child_process', () => ({
-  spawn: vi.fn(() => new MockChildProcess()),
+  spawn: vi.fn((cmd: string, args: string[]) => new MockChildProcess(args)),
 }));
 
 describe('search_streaming tools', () => {
@@ -312,7 +322,7 @@ describe('search_streaming tools', () => {
 
   describe('SearchSessionManager', () => {
     it('should enforce max concurrent sessions', async () => {
-      const maxSessions = 10;
+      const maxSessions = 5; // Per plan: keep resource usage predictable
 
       // Start max sessions
       const promises: Promise<any>[] = [];
@@ -378,6 +388,20 @@ describe('search_streaming tools', () => {
       );
 
       expect(result.content[0].text).toContain('Error');
+    });
+
+    it('should clear cleanup timer on dispose', () => {
+      // Access private cleanupInterval via type casting
+      const manager = searchManager as any;
+
+      // Verify timer exists before dispose
+      expect(manager.cleanupInterval).toBeDefined();
+
+      // Dispose should clear the timer
+      searchManager.dispose();
+
+      // Verify timer is cleared
+      expect(manager.cleanupInterval).toBeUndefined();
     });
   });
 });

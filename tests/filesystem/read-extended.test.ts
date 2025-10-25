@@ -94,8 +94,11 @@ describe('read_file extended functionality', () => {
     });
 
     it.skip('should support multiple image formats', async () => {
-      // TODO: Test is flaky when renaming PNG with different extensions
-      // Core image support works (tested in PNG test)
+      // TODO(test-fix): Test is flaky when renaming PNG fixture with different extensions
+      // Root cause: Writing PNG bytes with different extension may cause file type detection issues
+      // Workaround: Core image support is verified in "should return ImageContent for PNG files" test
+      // Fix needed: Create actual JPEG/GIF/WebP fixtures instead of renaming PNG
+      // Tracked in: Session 3 follow-up (pre-v0.3.0 release)
       const formats = [
         { ext: 'jpg', mime: 'image/jpeg' },
         { ext: 'jpeg', mime: 'image/jpeg' },
