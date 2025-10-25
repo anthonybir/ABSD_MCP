@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+*.log
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+config.json
+!config.example.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+tmp/
+temp/

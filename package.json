@@ -1,0 +1,48 @@
+{
+  "name": "@absd/devops-mcp",
+  "version": "0.1.0",
+  "description": "ABSD DevOps MCP Server - Local filesystem & terminal operations",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "absd-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "config.example.json"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm --clean --minify",
+    "test": "vitest",
+    "test:security": "vitest tests/security",
+    "prepublishOnly": "pnpm test && pnpm build"
+  },
+  "keywords": [
+    "mcp",
+    "devops",
+    "filesystem",
+    "terminal",
+    "absd"
+  ],
+  "author": "Anthony Bir <anthonybir@aena.edu.py>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2",
+    "node-pty": "^1.0.0",
+    "pino": "^10.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "pino-pretty": "^13.1.2",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.3"
+  }
+}

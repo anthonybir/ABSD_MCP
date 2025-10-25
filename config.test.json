@@ -1,0 +1,14 @@
+{
+  "allowedDirectories": [
+    "/Users/anthonybir/Projects/ABSD_MCP"
+  ],
+  "blockedCommands": [
+    "rm -rf /",
+    "dd if=/dev/zero",
+    "mkfs"
+  ],
+  "fileReadLineLimit": 100,
+  "fileWriteLineLimit": 50,
+  "sessionTimeout": 1800000,
+  "logLevel": "debug"
+}

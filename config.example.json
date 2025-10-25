@@ -1,0 +1,18 @@
+{
+  "allowedDirectories": [
+    "/Users/anthonybir/Projects",
+    "/Users/anthonybir/Documents"
+  ],
+  "blockedCommands": [
+    "rm -rf /",
+    "dd if=/dev/zero",
+    "mkfs",
+    "shutdown",
+    "reboot",
+    "init 0"
+  ],
+  "fileReadLineLimit": 2000,
+  "fileWriteLineLimit": 75,
+  "sessionTimeout": 1800000,
+  "logLevel": "info"
+}
