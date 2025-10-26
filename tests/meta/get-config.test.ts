@@ -40,7 +40,7 @@ describe('get_config tool', () => {
     expect(parsedConfig.fileWriteLineLimit).toBe(75);
     expect(parsedConfig.sessionTimeout).toBe(1800000);
     expect(parsedConfig.logLevel).toBe('info');
-    expect(parsedConfig.version).toBe('0.3.4'); // Dynamically loaded from package.json
+    expect(parsedConfig.version).toBe('0.3.5'); // Dynamically loaded from package.json
     expect(parsedConfig.security.hasUnrestrictedAccess).toBe(false);
     expect(parsedConfig.security.totalAllowedPaths).toBe(2);
     expect(parsedConfig.security.totalBlockedCommands).toBe(2);

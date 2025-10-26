@@ -31,13 +31,8 @@ const ImageContentSchema = z.object({
   mimeType: z.string(),
 });
 
-const JsonContentSchema = z.object({
-  type: z.literal('json'),
-  json: z.any(),
-});
-
 export const ToolResultSchema = z.object({
-  content: z.array(z.union([TextContentSchema, ImageContentSchema, JsonContentSchema])),
+  content: z.array(z.union([TextContentSchema, ImageContentSchema])),
 });
 
 export type ToolResult = z.infer<typeof ToolResultSchema>;

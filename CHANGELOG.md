@@ -5,6 +5,27 @@ All notable changes to ABSD DevOps MCP Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2025-10-26
+
+### 🐛 Bug Fixes
+- **Fixed "unsupported format" error in MCP clients:** `start_process` now inlines JSON metadata within text block
+  - Removed separate `json` content block that caused errors in Claude/Codex
+  - JSON metadata now embedded in text: `Metadata (JSON): { pid, command, cwd, state }`
+  - Clients can parse PID from text without requiring `json` content type support
+  - Updated [src/tools/terminal/process.ts](src/tools/terminal/process.ts:76-81) to inline JSON with pretty-printing
+  - Removed unused `JsonContentSchema` from [src/types/config.ts](src/types/config.ts)
+
+### 🎯 Impact
+- **MCP compatibility improved:** Works with all MCP clients that only support `text` and `image` content types
+- **No functionality lost:** Same machine-readable data, just delivered in universally-supported format
+- **Better UX:** PID and metadata visible in human-readable output for easy copy/paste
+
+### 🧪 Testing
+- Core tests passing on Node 20: **100 passed**, 17 skipped
+- 2 pre-existing flaky tests in `read-multiple.test.ts` (unrelated to this fix)
+
+---
+
 ## [0.3.4] - 2025-10-26
 
 ### 🐛 Bug Fixes
