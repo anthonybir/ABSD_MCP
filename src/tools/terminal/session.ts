@@ -82,6 +82,13 @@ export class SessionManager {
   }
 
   /**
+   * Alias used by tooling layers that expect listSessions()
+   */
+  listSessions(): SessionInfo[] {
+    return this.listAll();
+  }
+
+  /**
    * Get all active sessions
    */
   listAll(): SessionInfo[] {

@@ -129,6 +129,27 @@ Create a `config.json` file (or copy from `config.example.json`):
 - **urlDenylist**: Array of hostnames to block for URL fetching (default: `["localhost", "127.0.0.1", "0.0.0.0", "::1"]`)
 - **urlTimeout**: URL fetch timeout in milliseconds (default: 10000 = 10 seconds)
 
+#### Enable Full Filesystem Access (Advanced)
+
+Set `allowedDirectories` to an empty array (`[]`) if you want ABSD to access every path on your machine. **You must keep `blockedCommands` populated**—the server will refuse to start if both lists are empty.
+
+```json
+{
+  "allowedDirectories": [],
+  "blockedCommands": [
+    "rm -rf /",
+    "dd if=/dev/zero",
+    "mkfs",
+    "shutdown",
+    "reboot",
+    "init 0"
+    // ...and the rest from config.example.json
+  ]
+}
+```
+
+Only use unrestricted mode on trusted local machines and keep the expanded blocked-commands list (31 entries) to avoid accidental destructive commands.
+
 ### Path Formatting
 
 **Windows users:** Use forward slashes in JSON to avoid escaping issues:

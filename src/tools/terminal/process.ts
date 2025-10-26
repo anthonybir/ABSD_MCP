@@ -65,9 +65,10 @@ export async function startProcessTool(
     }, 'Process started successfully');
 
     return {
-      content: [{
-        type: 'text',
-        text: `Process started successfully
+      content: [
+        {
+          type: 'text',
+          text: `Process started successfully
 PID: ${session.pid}
 Command: ${args.command}
 CWD: ${pathValidation.resolvedPath}
@@ -75,7 +76,17 @@ State: ${session.state}
 
 Initial output:
 ${output || '[No output yet]'}`,
-      }],
+        },
+        {
+          type: 'json',
+          json: {
+            pid: session.pid,
+            command: args.command,
+            cwd: pathValidation.resolvedPath,
+            state: session.state,
+          },
+        },
+      ],
     };
   } catch (error) {
     const mcpError = wrapError(error, 'start_process');

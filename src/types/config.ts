@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const ConfigSchema = z.object({
-  allowedDirectories: z.array(z.string()).min(1, 'Al menos un directorio permitido requerido'),
+  allowedDirectories: z.array(z.string()).default([]),
   blockedCommands: z.array(z.string()).default([]),
   fileReadLineLimit: z.number().positive().default(1000),
   fileWriteLineLimit: z.number().positive().default(50),
@@ -31,8 +31,13 @@ const ImageContentSchema = z.object({
   mimeType: z.string(),
 });
 
+const JsonContentSchema = z.object({
+  type: z.literal('json'),
+  json: z.any(),
+});
+
 export const ToolResultSchema = z.object({
-  content: z.array(z.union([TextContentSchema, ImageContentSchema])),
+  content: z.array(z.union([TextContentSchema, ImageContentSchema, JsonContentSchema])),
 });
 
 export type ToolResult = z.infer<typeof ToolResultSchema>;

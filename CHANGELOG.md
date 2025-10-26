@@ -5,6 +5,41 @@ All notable changes to ABSD DevOps MCP Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-10-26
+
+### 🐛 Bug Fixes
+- **Fixed usage stats crash:** SessionManager now exposes `listSessions()` method (alias for `listAll()`)
+  - `get_usage_stats` tool no longer throws "listSessions is not a function" error
+  - Tool now correctly reports active sessions and searches
+  - Added method in [src/tools/terminal/session.ts](src/tools/terminal/session.ts:84-91)
+
+### ✨ Enhancements
+- **Machine-readable data from `start_process`:** Tool now returns structured JSON payload
+  - Returns both human-readable text AND JSON object: `{ pid, command, cwd, state }`
+  - Resolves "PID not found" failures when clients parse tool responses
+  - Clients like Claude and Codex can now reliably extract process metadata
+  - Added `JsonContentSchema` to support JSON payloads in tool results ([src/types/config.ts](src/types/config.ts:34-40))
+  - Updated [src/tools/terminal/process.ts](src/tools/terminal/process.ts:68-88)
+
+### 🔧 Configuration
+- **Unrestricted filesystem mode now supported:** `allowedDirectories` can be set to empty array (`[]`)
+  - Enables full filesystem access on trusted local machines
+  - Server still requires `blockedCommands` to be populated (refuses to start if both arrays are empty)
+  - Removed `.min(1)` validation from ConfigSchema ([src/types/config.ts](src/types/config.ts:4))
+  - Added "Enable Full Filesystem Access (Advanced)" section to README with setup instructions
+
+### 📚 Documentation
+- Added v0.3.3 compatibility notice in README (Node ≥20 requirement)
+- Added Codex CLI Setup (TOML) section with example configuration
+- Moved local development guides (AGENTS.md, CLAUDE.md, absd-mcp-devops-engineering-guide.md) to `.gitignore`
+- Repository stays clean while preserving local documentation
+
+### 🧪 Testing
+- All tests passing on Node 20: **102 passed**, 17 skipped (119 total)
+- Verified with: `. ~/.nvm/nvm.sh && nvm use 20 && pnpm test`
+
+---
+
 ## [0.3.3] - 2025-10-26
 
 ### 🔧 Compatibility

@@ -67,9 +67,10 @@ describe('read_file extended functionality', () => {
       const imagePath = join(testDir, 'test.png');
       const fixtureImage = readFileSync(join(process.cwd(), 'tests/fixtures/test-image.png'));
       writeFileSync(imagePath, fixtureImage);
+      const resolvedImagePath = realpathSync(imagePath);
 
       const result = await readFileTool(
-        { path: imagePath, offset: 0 },
+        { path: resolvedImagePath, offset: 0 },
         validator,
         mockLogger,
         config
