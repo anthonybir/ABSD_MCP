@@ -7,6 +7,9 @@ pnpm-lock.yaml
 dist/
 *.tsbuildinfo
 *.tgz
+AGENTS.md
+CLAUDE.md
+absd-mcp-devops-engineering-guide.md
 
 # Environment
 .env

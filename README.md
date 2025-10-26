@@ -16,6 +16,8 @@ Local-first Model Context Protocol (MCP) server providing secure filesystem and 
 - **Type-Safe**: Built with TypeScript strict mode and Zod schema validation
 - **Local-Only**: Runs entirely on your machine via stdio transport
 
+⚠️ **v0.3.3 Compatibility Update:** Node.js requirement lowered to **>= 20.0.0** and native modules are now built against Node 20 so Claude Desktop can load the server without module-version errors. If you installed before v0.3.3, reinstall globally and restart Claude Desktop.
+
 ⚠️ **v0.3.2 Security Update:** Default blocked commands expanded from 6 to 31 (destructive disk operations, system/network modifications, package manager removals, data destruction). **Existing installations:** Review your `~/ABSD_MCP/config.json` and merge new blocked commands from [config.example.json](config.example.json) to benefit from enhanced security.
 
 ## Installation
@@ -64,6 +66,21 @@ npx @anthonybir/devops-mcp@latest
 ```
 
 Requires manual Claude Desktop configuration (see below).
+
+### Codex CLI Setup (TOML)
+
+If you run the [Codex CLI](https://github.com/openai/codex), install the package globally first and then add an MCP entry to your `codex.toml`:
+
+```toml
+[[mcp]]
+name = "absd-devops"
+command = "absd-mcp"
+args = []
+working_directory = "/Users/yourusername"
+env = { ABSD_MCP_CONFIG = "/Users/yourusername/ABSD_MCP/config.json" }
+```
+
+After saving the file run `codex mcp reload` (or restart Codex) so the new server is picked up. Update the paths to match your environment.
 
 ### From Source
 
