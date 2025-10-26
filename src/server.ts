@@ -56,15 +56,22 @@ import {
 // Import terminal tools
 import { SessionManager } from './tools/terminal/session.js';
 import { startProcessTool, startProcessToolDefinition, type StartProcessArgs } from './tools/terminal/process.js';
-import { interactWithProcessTool, interactWithProcessToolDefinition, type InteractArgs } from './tools/terminal/interact.js';
+import {
+  interactWithProcessTool,
+  interactWithProcessToolDefinition,
+  InteractSchema,
+  type InteractArgs
+} from './tools/terminal/interact.js';
 import {
   readProcessOutputTool,
   readProcessOutputToolDefinition,
+  ReadProcessOutputSchema,
   type ReadProcessOutputArgs,
   listSessionsTool,
   listSessionsToolDefinition,
   terminateProcessTool,
   terminateProcessToolDefinition,
+  TerminateProcessSchema,
   type TerminateProcessArgs
 } from './tools/terminal/management.js';
 import {
@@ -229,21 +236,27 @@ export function createServer(configPath?: string) {
           result = await startProcessTool(args as StartProcessArgs, sessionManager, validator, logger);
           break;
 
-        case 'interact_with_process':
-          result = await interactWithProcessTool(args as InteractArgs, sessionManager, logger);
+        case 'interact_with_process': {
+          const validatedArgs = InteractSchema.parse(args);
+          result = await interactWithProcessTool(validatedArgs, sessionManager, logger);
           break;
+        }
 
-        case 'read_process_output':
-          result = await readProcessOutputTool(args as ReadProcessOutputArgs, sessionManager, logger);
+        case 'read_process_output': {
+          const validatedArgs = ReadProcessOutputSchema.parse(args);
+          result = await readProcessOutputTool(validatedArgs, sessionManager, logger);
           break;
+        }
 
         case 'list_sessions':
           result = await listSessionsTool(sessionManager, logger);
           break;
 
-        case 'terminate_process':
-          result = await terminateProcessTool(args as TerminateProcessArgs, sessionManager, logger);
+        case 'terminate_process': {
+          const validatedArgs = TerminateProcessSchema.parse(args);
+          result = await terminateProcessTool(validatedArgs, sessionManager, logger);
           break;
+        }
 
         case 'list_processes':
           result = await listProcessesTool(logger);

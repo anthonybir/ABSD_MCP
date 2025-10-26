@@ -1,6 +1,6 @@
 {
   "name": "@anthonybir/devops-mcp",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "description": "ABSD DevOps MCP Server - Local filesystem & terminal operations",
   "type": "module",
   "main": "dist/index.js",

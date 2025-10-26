@@ -5,10 +5,10 @@ import { wrapError } from '../../utils/errors.js';
 import type { Logger } from '../../utils/logger.js';
 import type { ToolResult } from '../../types/config.js';
 
-const InteractSchema = z.object({
-  pid: z.number().int().positive().describe('Process ID from start_process'),
+export const InteractSchema = z.object({
+  pid: z.coerce.number().int().positive().describe('Process ID from start_process'),
   input: z.string().describe('Input to send to the process'),
-  timeout: z.number().positive().default(8000).describe('Maximum wait time in milliseconds'),
+  timeout: z.coerce.number().positive().default(8000).describe('Maximum wait time in milliseconds'),
   waitForPrompt: z.boolean().default(true).describe('Wait for REPL prompt or completion'),
 });
 

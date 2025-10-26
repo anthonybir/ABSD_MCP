@@ -63,8 +63,11 @@ export class SessionManager {
 
       this.logger.info({
         pid: ptyProcess.pid,
+        pidType: typeof ptyProcess.pid,
         shell: command,
         cwd,
+        totalSessions: this.sessions.size,
+        allPids: Array.from(this.sessions.keys()),
       }, 'Session created');
 
       return session;
@@ -78,7 +81,18 @@ export class SessionManager {
    * Get a session by PID
    */
   get(pid: number): ProcessSession | undefined {
-    return this.sessions.get(pid);
+    const session = this.sessions.get(pid);
+
+    // DEBUG: Log all session lookups
+    this.logger.debug({
+      requestedPid: pid,
+      requestedPidType: typeof pid,
+      found: !!session,
+      availablePids: Array.from(this.sessions.keys()),
+      availablePidTypes: Array.from(this.sessions.keys()).map(k => typeof k),
+    }, 'Session lookup');
+
+    return session;
   }
 
   /**

@@ -5,6 +5,64 @@ All notable changes to ABSD DevOps MCP Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-10-26
+
+### 🐛 Critical Bug Fix
+- **Fixed Zod schema validation not being applied:** Args now actually validated/coerced before tool execution
+  - **Root cause:** Server used TypeScript type assertions (`as XyzArgs`) instead of calling Zod `.parse()`
+  - Type assertions are compile-time only - they do NOTHING at runtime
+  - Result: `z.coerce.number()` in schemas was defined but never invoked
+  - **Solution:** Added `schema.parse(args)` calls for all terminal tools in [src/server.ts](src/server.ts)
+  - Tools affected: `interact_with_process`, `read_process_output`, `terminate_process`
+  - Exported schemas from tool files to enable server-side validation
+
+### 🎯 Impact
+- **Terminal tools now work correctly:** String PIDs are automatically coerced to numbers before Map lookup
+- **Validation actually enforced:** All Zod validation logic (coercion, constraints, defaults) now executes
+- **Better error messages:** Invalid args now fail fast with Zod validation errors instead of silent failures
+- **Architectural fix:** Closes the gap between defining schemas and actually using them
+
+### 🔍 Technical Details
+- Changed `const InteractSchema` to `export const InteractSchema` in [src/tools/terminal/interact.ts](src/tools/terminal/interact.ts:8)
+- Changed `const ReadProcessOutputSchema` and `const TerminateProcessSchema` to exports in [src/tools/terminal/management.ts](src/tools/terminal/management.ts)
+- Imported schemas in [src/server.ts](src/server.ts:62-75)
+- Replaced `args as InteractArgs` with `InteractSchema.parse(args)` (lines 239-243)
+- Replaced `args as ReadProcessOutputArgs` with `ReadProcessOutputSchema.parse(args)` (lines 245-249)
+- Replaced `args as TerminateProcessArgs` with `TerminateProcessSchema.parse(args)` (lines 255-259)
+
+### 🧪 Testing
+- All tests passing on Node 20: **102 passed**, 17 skipped
+- Updated version expectation in [tests/meta/get-config.test.ts](tests/meta/get-config.test.ts:43)
+
+---
+
+## [0.3.6] - 2025-10-26
+
+### 🐛 Critical Bug Fix
+- **Fixed "Process not found" error in terminal tools:** PIDs now properly coerce from string to number
+  - **Root cause:** Claude Desktop parses JSON metadata from text and sends PIDs as strings (`"52449"`)
+  - JavaScript `Map.get("52449")` doesn't match `Map.get(52449)` due to strict type equality
+  - Tools (`interact_with_process`, `read_process_output`, `terminate_process`) were failing even though sessions existed
+  - **Solution:** Added `z.coerce.number()` to all PID schemas for automatic string → number conversion
+  - Updated [src/tools/terminal/interact.ts](src/tools/terminal/interact.ts:9) (InteractSchema)
+  - Updated [src/tools/terminal/management.ts](src/tools/terminal/management.ts) (ReadProcessOutputSchema, TerminateProcessSchema)
+
+### 🎯 Impact
+- **Terminal REPL workflows now functional:** Users can reliably interact with Python/Node/bash REPLs
+- **No breaking changes:** Existing numeric PID usage still works, strings now also supported
+- **Better client compatibility:** Works with MCP clients that parse metadata as strings
+
+### 🔍 Debugging Notes
+- Added temporary debug logging to `SessionManager.get()` and `create()` showing PID types
+- Logs revealed Claude Desktop sending `{"pid":"52449"}` instead of `{"pid":52449}`
+- Map lookup failing silently: `sessions.get("52449") → undefined` while `sessions.keys() → [52449]`
+
+### 🧪 Testing
+- All tests passing on Node 20: **102 passed**, 17 skipped
+- Verified with: `. ~/.nvm/nvm.sh && nvm use 20 && pnpm test`
+
+---
+
 ## [0.3.5] - 2025-10-26
 
 ### 🐛 Bug Fixes

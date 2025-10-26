@@ -8,9 +8,9 @@ import type { ToolResult } from '../../types/config.js';
 // READ_PROCESS_OUTPUT
 // ============================================================================
 
-const ReadProcessOutputSchema = z.object({
-  pid: z.number().int().positive().describe('Process ID from start_process'),
-  timeout: z.number().positive().default(2000).describe('Maximum wait time in milliseconds'),
+export const ReadProcessOutputSchema = z.object({
+  pid: z.coerce.number().int().positive().describe('Process ID from start_process'),
+  timeout: z.coerce.number().positive().default(2000).describe('Maximum wait time in milliseconds'),
 });
 
 export type ReadProcessOutputArgs = z.infer<typeof ReadProcessOutputSchema>;
@@ -138,8 +138,8 @@ export const listSessionsToolDefinition = {
 // TERMINATE_PROCESS
 // ============================================================================
 
-const TerminateProcessSchema = z.object({
-  pid: z.number().int().positive().describe('Process ID to terminate'),
+export const TerminateProcessSchema = z.object({
+  pid: z.coerce.number().int().positive().describe('Process ID to terminate'),
 });
 
 export type TerminateProcessArgs = z.infer<typeof TerminateProcessSchema>;
