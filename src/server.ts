@@ -11,6 +11,7 @@ import { SecurityValidator } from './security/validator.js';
 import { loadConfig } from './security/config.js';
 import { createLogger } from './utils/logger.js';
 import { wrapError } from './utils/errors.js';
+import { SERVER_VERSION } from './version.js';
 
 // Import resources and prompts
 import { getResourceDefinitions, getResourceContent } from './resources/index.js';
@@ -102,7 +103,7 @@ export function createServer(configPath?: string) {
   const server = new Server(
     {
       name: '@absd/devops-mcp',
-      version: '0.3.2',
+      version: SERVER_VERSION,
     },
     {
       capabilities: {

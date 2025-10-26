@@ -5,6 +5,36 @@ All notable changes to ABSD DevOps MCP Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-10-26
+
+### 🔧 Compatibility
+- **Node.js 20 compatibility:** Lowered Node.js requirement from >=22.0.0 to >=20.0.0
+  - Rebuilt with Node 20.19.3 for Claude Desktop compatibility
+  - node-pty now compiled for NODE_MODULE_VERSION 115 (Node 20)
+  - Fixes MODULE_VERSION mismatch error when loaded by Claude Desktop
+  - **Important:** Existing global installations must be updated to v0.3.3
+
+### 🐛 Bug Fixes
+- **Fixed version reporting in `get_config` tool**
+  - Was hardcoded to "0.3.0", now correctly reports actual package version
+  - Created [src/version.ts](src/version.ts) to dynamically export `SERVER_VERSION` from package.json
+  - Updated [src/server.ts](src/server.ts) and [src/tools/meta/get-config.ts](src/tools/meta/get-config.ts) to use `SERVER_VERSION`
+  - **Single source of truth:** Version now defined only in package.json - prevents version drift
+
+### 📦 Migration
+Global installation users:
+1. Update package: `npm install -g @anthonybir/devops-mcp@0.3.3`
+2. Restart Claude Desktop (File > Quit Claude Desktop, then relaunch)
+3. Verify connection in Claude Desktop MCP servers panel
+4. Test with: "Use get_config to show server version" → should show "0.3.3"
+
+### 🧪 Testing
+- All tests passing on Node 20: **102 passed**, 17 skipped (119 total)
+- Verified node-pty compiled for NODE_MODULE_VERSION 115
+- Updated test to expect dynamic version from package.json
+
+---
+
 ## [0.3.2] - 2025-01-26
 
 ### 🐛 Critical Bug Fixes

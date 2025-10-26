@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Config } from '../../types/config.js';
 import type { ToolResult } from '../../types/config.js';
+import { SERVER_VERSION } from '../../version.js';
 
 export const getConfigToolDefinition = {
   name: 'get_config',
@@ -28,7 +29,7 @@ export async function getConfigTool(config: Config): Promise<ToolResult> {
     logLevel: config.logLevel,
     urlDenylist: config.urlDenylist,
     urlTimeout: config.urlTimeout,
-    version: '0.3.0',
+    version: SERVER_VERSION,
     platform: process.platform,
     nodeVersion: process.version,
     // Security metadata

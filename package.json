@@ -1,6 +1,6 @@
 {
   "name": "@anthonybir/devops-mcp",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "ABSD DevOps MCP Server - Local filesystem & terminal operations",
   "type": "module",
   "main": "dist/index.js",
@@ -41,7 +41,7 @@
     "url": "https://github.com/anthonybir/ABSD_MCP/issues"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
