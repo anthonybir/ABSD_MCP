@@ -1,0 +1,37 @@
+name: PR validation
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: PR checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Unit and integration tests
+        run: pnpm test --run
+      - name: Security tests
+        run: pnpm test:security --run
+      - name: Build
+        run: pnpm build
