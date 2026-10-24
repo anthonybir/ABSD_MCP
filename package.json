@@ -58,5 +58,15 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^4.1.12"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "node-pty"
+    ],
+    "overrides": {
+      "vite": "^7.3.7"
+    }
   }
 }

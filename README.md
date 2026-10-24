@@ -317,7 +317,7 @@ Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Add tests for new functionality
-4. Ensure all tests pass (`pnpm test`)
+4. Run focused checks for feedback; complete [required PR validation](docs/development/validation.md) before merge
 5. Submit a pull request
 
 ## License

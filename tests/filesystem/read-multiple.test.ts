@@ -3,7 +3,7 @@ import { readMultipleFilesTool } from '../../src/tools/filesystem/read-multiple.
 import { SecurityValidator } from '../../src/security/validator.js';
 import type { Config } from '../../src/types/config.js';
 import { tmpdir } from 'node:os';
-import { mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 describe('read_multiple_files tool', () => {
@@ -13,8 +13,7 @@ describe('read_multiple_files tool', () => {
 
   beforeEach(() => {
     // Create temp test directory
-    testDir = join(tmpdir(), `absd-mcp-test-${Date.now()}`);
-    mkdirSync(testDir, { recursive: true });
+    testDir = mkdtempSync(join(tmpdir(), 'absd-mcp-test-'));
 
     // Resolve symlinks AFTER directory creation (macOS /tmp -> /private/var/folders)
     testDir = realpathSync(testDir);
