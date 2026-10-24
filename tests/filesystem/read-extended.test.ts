@@ -3,7 +3,7 @@ import { readFileTool } from '../../src/tools/filesystem/read.js';
 import { SecurityValidator } from '../../src/security/validator.js';
 import type { Config } from '../../src/types/config.js';
 import { tmpdir } from 'node:os';
-import { mkdirSync, writeFileSync, rmSync, readFileSync, realpathSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import nock from 'nock';
 
@@ -26,8 +26,7 @@ describe('read_file extended functionality', () => {
 
   beforeEach(() => {
     // Create temp test directory
-    testDir = join(tmpdir(), `absd-mcp-test-${Date.now()}`);
-    mkdirSync(testDir, { recursive: true });
+    testDir = mkdtempSync(join(tmpdir(), 'absd-mcp-test-'));
 
     // Mock logger
     mockLogger = {

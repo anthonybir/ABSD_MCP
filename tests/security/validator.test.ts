@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SecurityValidator } from '../../src/security/validator.js';
 import { tmpdir } from 'node:os';
-import { mkdirSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Config } from '../../src/types/config.js';
 
@@ -13,7 +13,7 @@ describe('SecurityValidator - Path Traversal Protection', () => {
 
   beforeEach(() => {
     // Create temp test directory
-    testDir = join(tmpdir(), `absd-mcp-test-${Date.now()}`);
+    testDir = mkdtempSync(join(tmpdir(), 'absd-mcp-test-'));
     allowedDir = join(testDir, 'allowed');
     mkdirSync(allowedDir, { recursive: true });
 
